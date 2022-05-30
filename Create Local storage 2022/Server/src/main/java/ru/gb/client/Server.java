@@ -1,4 +1,4 @@
-package ru.gb.storage;
+package ru.gb.client;
 
 
 import io.netty.bootstrap.ServerBootstrap;
@@ -18,7 +18,7 @@ public class Server {
         this.port = port;
     }
 
-    public void run() throws Exception{
+    public void run() {
         NioEventLoopGroup bossGroup = new NioEventLoopGroup(); //прием входящих клиентов
         NioEventLoopGroup workerGroup = new NioEventLoopGroup(); //обрабатывает потоки данных
 
@@ -41,6 +41,9 @@ public class Server {
 
             channelFuture.channel().closeFuture().sync(); //закрываетм сервер
 
+        } catch (InterruptedException e) {
+//            Добавить логгирование
+            e.printStackTrace();
         } finally {
             workerGroup.shutdownGracefully();
             bossGroup.shutdownGracefully();
@@ -48,7 +51,7 @@ public class Server {
 
     }
 
-    public static void main(String[] args) throws Exception {
+    public static void main(String[] args)  {
             new Server(8080).run();
 
 
