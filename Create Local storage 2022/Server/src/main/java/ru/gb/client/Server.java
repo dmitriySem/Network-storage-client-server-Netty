@@ -8,6 +8,10 @@ import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.codec.LineBasedFrameDecoder;
+import io.netty.handler.codec.string.StringDecoder;
+import io.netty.handler.codec.string.StringEncoder;
 
 public class Server {
 
@@ -26,13 +30,19 @@ public class Server {
             ServerBootstrap serverBootstrap = new ServerBootstrap(); //позволяет настроить сервер
             serverBootstrap.group(bossGroup,workerGroup)
                     .channel(NioServerSocketChannel.class) //создается канал NioServerSocketChannel после того как, приянто входящее соединение
-                    .childHandler(new ChannelInitializer<SocketChannel>() { // обработчик, кот будем использовать для открытого канала.
+                    .childHandler(new ChannelInitializer<NioSocketChannel>() { // обработчик, кот будем использовать для открытого канала.
                                                                             // ChannelInitializer помогает пользователю сконфигурировать новый канал.
                         @Override
-                        protected void initChannel(SocketChannel socketChannel) {
-                            socketChannel.pipeline().addLast(new ServerHendler());
+                        protected void initChannel(NioSocketChannel socketChannel) {
+                            socketChannel.pipeline().addLast(
+                                    new LineBasedFrameDecoder(256),
+                                    new StringDecoder(),
+                                    new StringEncoder(),
+                                    new ServerHandler()
+                            );
                         }
-                    }).option(ChannelOption.SO_BACKLOG,128) //параметры канала, применяется к NioServerSocketChannel, который применяет вход. соед
+                    })
+                    .option(ChannelOption.SO_BACKLOG,128) //параметры канала, применяется к NioServerSocketChannel, который применяет вход. соед
                     .childOption(ChannelOption.SO_KEEPALIVE, true); //применяется к оброба-м каналам
 
             ChannelFuture channelFuture = serverBootstrap.bind(port).sync(); //принимаем вход. сообщение.
